@@ -4,22 +4,31 @@
 // ============================================================
 // Backend: Firebase Firestore
 //
-// Lookup key:
-//   registration_id (FIELD inside participant_list)
+// Participant lookup:
+//     registration_id
 //
 // Food preference:
-//   food_preference
+//     food_preference
 //
 // Food verification:
-//   food_received = "yes"
-//   food_received_at = serverTimestamp()
+//     food_received = "yes"
+//     food_received_at = serverTimestamp()
 //
-// QR scanner:
-//   html5-qrcode
+// QR Library:
+//     html5-qrcode 2.3.8
+//
+// IMPORTANT:
+// html5-qrcode is loaded in HTML using:
+//
+// <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+//
+// Therefore DO NOT import Html5Qrcode in this file.
 // ============================================================
 
-import { Html5Qrcode } from
-    "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.esm.js";
+
+// ============================================================
+// FIREBASE IMPORTS
+// ============================================================
 
 import { initializeApp } from
     "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
@@ -58,7 +67,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// IMPORTANT:
 // Your Firestore database is named "symmetry"
 const db = getFirestore(app, "symmetry");
 
@@ -86,10 +94,11 @@ let processingScan = false;
 
 
 // ============================================================
-// SECURITY / HTML ESCAPING
+// HTML ESCAPE
 // ============================================================
 
 function escapeHTML(value) {
+
     if (value === null || value === undefined) {
         return "";
     }
@@ -104,7 +113,7 @@ function escapeHTML(value) {
 
 
 // ============================================================
-// NORMALIZE FOOD PREFERENCE
+// FOOD PREFERENCE FORMATTER
 // ============================================================
 
 function formatFoodPreference(value) {
@@ -121,26 +130,33 @@ function formatFoodPreference(value) {
         .trim()
         .toLowerCase();
 
-    if (preference === "veg" ||
-        preference === "vegetarian") {
+
+    if (
+        preference === "veg" ||
+        preference === "vegetarian"
+    ) {
         return "VEG";
     }
 
-    if (preference === "non-veg" ||
+
+    if (
+        preference === "non-veg" ||
         preference === "nonveg" ||
         preference === "non vegetarian" ||
-        preference === "non-vegetarian") {
+        preference === "non-vegetarian"
+    ) {
         return "NON-VEG";
     }
 
-    // If your database uses another value,
-    // display it without destroying the original information.
-    return String(value).trim().toUpperCase();
+
+    return String(value)
+        .trim()
+        .toUpperCase();
 }
 
 
 // ============================================================
-// CHECK WHETHER FOOD HAS ALREADY BEEN RECEIVED
+// CHECK FOOD RECEIVED STATUS
 // ============================================================
 
 function isFoodReceived(value) {
@@ -150,7 +166,10 @@ function isFoodReceived(value) {
     }
 
     if (typeof value === "string") {
-        return value.trim().toLowerCase() === "yes";
+
+        return value
+            .trim()
+            .toLowerCase() === "yes";
     }
 
     return false;
@@ -158,25 +177,35 @@ function isFoodReceived(value) {
 
 
 // ============================================================
-// EXTRACT REGISTRATION ID FROM QR CONTENT
+// EXTRACT REGISTRATION ID FROM QR
 // ============================================================
 //
-// Supported formats:
+// Supported QR formats:
 //
-// 1. Plain:
+// 1. Plain registration ID
+//
 //    SYM26-MTYM771D
 //
-// 2. JSON:
-//    {"registration_id":"SYM26-MTYM771D"}
+// 2. JSON
 //
-// 3. JSON:
-//    {"participantID":"SYM26-MTYM771D"}
+//    {
+//        "registration_id": "SYM26-MTYM771D"
+//    }
 //
-// 4. URL:
+// 3. JSON using participantID
+//
+//    {
+//        "participantID": "SYM26-MTYM771D"
+//    }
+//
+// 4. URL
+//
 //    https://example.com/?registration_id=SYM26-MTYM771D
 //
-// 5. URL:
+// 5. URL
+//
 //    https://example.com/?participant_id=SYM26-MTYM771D
+//
 // ============================================================
 
 function extractRegistrationId(decodedText) {
@@ -193,39 +222,51 @@ function extractRegistrationId(decodedText) {
 
 
     // --------------------------------------------------------
-    // Try JSON
+    // TRY JSON
     // --------------------------------------------------------
 
     try {
 
         const parsed = JSON.parse(raw);
 
-        if (parsed && typeof parsed === "object") {
+        if (
+            parsed &&
+            typeof parsed === "object"
+        ) {
 
             if (parsed.registration_id) {
-                return String(parsed.registration_id).trim();
-            }
-
-            if (parsed.participantID) {
-                return String(parsed.participantID).trim();
-            }
-
-            if (parsed.participant_id) {
-                return String(parsed.participant_id).trim();
+                return String(
+                    parsed.registration_id
+                ).trim();
             }
 
             if (parsed.registrationId) {
-                return String(parsed.registrationId).trim();
+                return String(
+                    parsed.registrationId
+                ).trim();
+            }
+
+            if (parsed.participantID) {
+                return String(
+                    parsed.participantID
+                ).trim();
+            }
+
+            if (parsed.participant_id) {
+                return String(
+                    parsed.participant_id
+                ).trim();
             }
         }
 
     } catch (error) {
-        // Not JSON — continue.
+
+        // QR is not JSON.
     }
 
 
     // --------------------------------------------------------
-    // Try URL parameters
+    // TRY URL
     // --------------------------------------------------------
 
     try {
@@ -238,17 +279,20 @@ function extractRegistrationId(decodedText) {
             url.searchParams.get("participant_id") ||
             url.searchParams.get("participantID");
 
+
         if (registrationId) {
+
             return registrationId.trim();
         }
 
     } catch (error) {
-        // Not a URL — continue.
+
+        // QR is not a URL.
     }
 
 
     // --------------------------------------------------------
-    // Plain registration ID
+    // OTHERWISE TREAT IT AS PLAIN REGISTRATION ID
     // --------------------------------------------------------
 
     return raw;
@@ -256,32 +300,53 @@ function extractRegistrationId(decodedText) {
 
 
 // ============================================================
-// FIND PARTICIPANT
+// FIND PARTICIPANT IN FIRESTORE
 // ============================================================
 
 async function findParticipant(registrationId) {
 
     const participantsRef =
-        collection(db, PARTICIPANT_COLLECTION);
+        collection(
+            db,
+            PARTICIPANT_COLLECTION
+        );
+
 
     const participantQuery = query(
         participantsRef,
-        where("registration_id", "==", registrationId),
+
+        where(
+            "registration_id",
+            "==",
+            registrationId
+        ),
+
         limit(1)
     );
 
-    const snapshot = await getDocs(participantQuery);
+
+    const snapshot =
+        await getDocs(participantQuery);
+
 
     if (snapshot.empty) {
+
         return null;
     }
 
-    const docSnapshot = snapshot.docs[0];
+
+    const participantDoc =
+        snapshot.docs[0];
+
 
     return {
-        id: docSnapshot.id,
-        ref: docSnapshot.ref,
-        data: docSnapshot.data()
+
+        id: participantDoc.id,
+
+        ref: participantDoc.ref,
+
+        data: participantDoc.data()
+
     };
 }
 
@@ -292,9 +357,13 @@ async function findParticipant(registrationId) {
 
 async function stopScanner() {
 
-    if (!scanner || !scanning) {
+    if (
+        !scanner ||
+        !scanning
+    ) {
         return;
     }
+
 
     try {
 
@@ -306,20 +375,22 @@ async function stopScanner() {
             "Scanner stop warning:",
             error
         );
-
     }
+
 
     scanning = false;
 }
 
 
 // ============================================================
-// DISPLAY PARTICIPANT
+// DISPLAY SUCCESS
 // ============================================================
 
 function displayParticipant(participant) {
 
-    const data = participant.data;
+    const data =
+        participant.data;
+
 
     const name =
         data.name ||
@@ -327,29 +398,39 @@ function displayParticipant(participant) {
         data.fullName ||
         "Participant";
 
+
     const registrationId =
         data.registration_id ||
         "N/A";
 
+
     const foodPreference =
-        formatFoodPreference(data.food_preference);
+        formatFoodPreference(
+            data.food_preference
+        );
 
 
     resultSection.hidden = false;
 
 
     resultCard.innerHTML = `
+
         <div class="result-success">
 
             <div class="result-icon">
                 ✓
             </div>
 
-            <h2>Food Verified</h2>
+            <h2>
+                Food Verified
+            </h2>
+
 
             <div class="participant-details">
 
+
                 <div class="detail-row">
+
                     <span class="detail-label">
                         Name
                     </span>
@@ -357,9 +438,12 @@ function displayParticipant(participant) {
                     <span class="detail-value">
                         ${escapeHTML(name)}
                     </span>
+
                 </div>
 
+
                 <div class="detail-row">
+
                     <span class="detail-label">
                         Registration ID
                     </span>
@@ -367,9 +451,12 @@ function displayParticipant(participant) {
                     <span class="detail-value">
                         ${escapeHTML(registrationId)}
                     </span>
+
                 </div>
 
+
                 <div class="detail-row">
+
                     <span class="detail-label">
                         Food Preference
                     </span>
@@ -377,9 +464,12 @@ function displayParticipant(participant) {
                     <span class="detail-value food-preference">
                         ${escapeHTML(foodPreference)}
                     </span>
+
                 </div>
 
+
                 <div class="detail-row">
+
                     <span class="detail-label">
                         Status
                     </span>
@@ -387,12 +477,15 @@ function displayParticipant(participant) {
                     <span class="detail-value">
                         Food Received
                     </span>
+
                 </div>
+
 
             </div>
 
         </div>
     `;
+
 
     resultSection.scrollIntoView({
         behavior: "smooth",
@@ -407,7 +500,9 @@ function displayParticipant(participant) {
 
 function displayAlreadyReceived(participant) {
 
-    const data = participant.data;
+    const data =
+        participant.data;
+
 
     const name =
         data.name ||
@@ -415,33 +510,43 @@ function displayAlreadyReceived(participant) {
         data.fullName ||
         "Participant";
 
+
     const registrationId =
         data.registration_id ||
         "N/A";
 
+
     const foodPreference =
-        formatFoodPreference(data.food_preference);
+        formatFoodPreference(
+            data.food_preference
+        );
 
 
     resultSection.hidden = false;
 
 
     resultCard.innerHTML = `
+
         <div class="result-warning">
 
             <div class="result-icon">
                 !
             </div>
 
-            <h2>Already Received</h2>
+            <h2>
+                Already Received
+            </h2>
 
             <p>
                 This participant has already received food.
             </p>
 
+
             <div class="participant-details">
 
+
                 <div class="detail-row">
+
                     <span class="detail-label">
                         Name
                     </span>
@@ -449,9 +554,12 @@ function displayAlreadyReceived(participant) {
                     <span class="detail-value">
                         ${escapeHTML(name)}
                     </span>
+
                 </div>
 
+
                 <div class="detail-row">
+
                     <span class="detail-label">
                         Registration ID
                     </span>
@@ -459,9 +567,12 @@ function displayAlreadyReceived(participant) {
                     <span class="detail-value">
                         ${escapeHTML(registrationId)}
                     </span>
+
                 </div>
 
+
                 <div class="detail-row">
+
                     <span class="detail-label">
                         Food Preference
                     </span>
@@ -469,9 +580,12 @@ function displayAlreadyReceived(participant) {
                     <span class="detail-value food-preference">
                         ${escapeHTML(foodPreference)}
                     </span>
+
                 </div>
 
+
                 <div class="detail-row">
+
                     <span class="detail-label">
                         Status
                     </span>
@@ -479,12 +593,15 @@ function displayAlreadyReceived(participant) {
                     <span class="detail-value">
                         Already Received
                     </span>
+
                 </div>
+
 
             </div>
 
         </div>
     `;
+
 
     resultSection.scrollIntoView({
         behavior: "smooth",
@@ -494,7 +611,7 @@ function displayAlreadyReceived(participant) {
 
 
 // ============================================================
-// DISPLAY INVALID REGISTRATION
+// DISPLAY INVALID QR
 // ============================================================
 
 function displayInvalid(registrationId) {
@@ -503,24 +620,35 @@ function displayInvalid(registrationId) {
 
 
     resultCard.innerHTML = `
+
         <div class="result-error">
 
             <div class="result-icon">
                 ✕
             </div>
 
-            <h2>Invalid Registration</h2>
+            <h2>
+                Invalid Registration
+            </h2>
 
             <p>
                 No participant was found for this QR code.
             </p>
 
-            <div class="invalid-id">
-                ${escapeHTML(registrationId)}
-            </div>
+
+            ${
+                registrationId
+                    ? `
+                        <div class="invalid-id">
+                            ${escapeHTML(registrationId)}
+                        </div>
+                    `
+                    : ""
+            }
 
         </div>
     `;
+
 
     resultSection.scrollIntoView({
         behavior: "smooth",
@@ -539,22 +667,26 @@ function displayDatabaseError() {
 
 
     resultCard.innerHTML = `
+
         <div class="result-error">
 
             <div class="result-icon">
                 ✕
             </div>
 
-            <h2>Verification Error</h2>
+            <h2>
+                Verification Error
+            </h2>
 
             <p>
                 Unable to verify this participant.
-                Please check the internet connection
+                Please check your internet connection
                 and try again.
             </p>
 
         </div>
     `;
+
 
     resultSection.scrollIntoView({
         behavior: "smooth",
@@ -570,17 +702,23 @@ function displayDatabaseError() {
 async function markFoodReceived(participant) {
 
     await updateDoc(
+
         participant.ref,
+
         {
+
             food_received: "yes",
-            food_received_at: serverTimestamp()
+
+            food_received_at:
+                serverTimestamp()
+
         }
     );
 }
 
 
 // ============================================================
-// PROCESS SCANNED QR
+// PROCESS QR CODE
 // ============================================================
 
 async function processQRCode(decodedText) {
@@ -589,17 +727,20 @@ async function processQRCode(decodedText) {
         return;
     }
 
+
     processingScan = true;
 
 
     try {
 
         // ----------------------------------------------------
-        // Extract registration ID
+        // EXTRACT REGISTRATION ID
         // ----------------------------------------------------
 
         const registrationId =
-            extractRegistrationId(decodedText);
+            extractRegistrationId(
+                decodedText
+            );
 
 
         if (!registrationId) {
@@ -611,7 +752,7 @@ async function processQRCode(decodedText) {
 
 
         // ----------------------------------------------------
-        // Stop scanner while processing
+        // STOP CAMERA WHILE PROCESSING
         // ----------------------------------------------------
 
         await stopScanner();
@@ -622,16 +763,20 @@ async function processQRCode(decodedText) {
 
 
         // ----------------------------------------------------
-        // Search Firestore
+        // FIND PARTICIPANT
         // ----------------------------------------------------
 
         const participant =
-            await findParticipant(registrationId);
+            await findParticipant(
+                registrationId
+            );
 
 
         if (!participant) {
 
-            displayInvalid(registrationId);
+            displayInvalid(
+                registrationId
+            );
 
             scannerStatus.textContent =
                 "Participant not found.";
@@ -645,12 +790,18 @@ async function processQRCode(decodedText) {
 
 
         // ----------------------------------------------------
-        // Check whether food was already received
+        // CHECK FOOD RECEIVED
         // ----------------------------------------------------
 
-        if (isFoodReceived(data.food_received)) {
+        if (
+            isFoodReceived(
+                data.food_received
+            )
+        ) {
 
-            displayAlreadyReceived(participant);
+            displayAlreadyReceived(
+                participant
+            );
 
             scannerStatus.textContent =
                 "Food was already received.";
@@ -660,24 +811,26 @@ async function processQRCode(decodedText) {
 
 
         // ----------------------------------------------------
-        // Mark food as received
+        // MARK FOOD RECEIVED
         // ----------------------------------------------------
 
-        await markFoodReceived(participant);
+        await markFoodReceived(
+            participant
+        );
+
+
+        // Update local copy
+        participant.data.food_received =
+            "yes";
 
 
         // ----------------------------------------------------
-        // Update local data so display is consistent
+        // DISPLAY SUCCESS
         // ----------------------------------------------------
 
-        participant.data.food_received = "yes";
-
-
-        // ----------------------------------------------------
-        // Display success
-        // ----------------------------------------------------
-
-        displayParticipant(participant);
+        displayParticipant(
+            participant
+        );
 
 
         scannerStatus.textContent =
@@ -691,7 +844,9 @@ async function processQRCode(decodedText) {
             error
         );
 
+
         displayDatabaseError();
+
 
         scannerStatus.textContent =
             "Verification failed.";
@@ -705,39 +860,47 @@ async function processQRCode(decodedText) {
 
 
 // ============================================================
-// QR SCAN SUCCESS CALLBACK
+// QR SCAN SUCCESS
 // ============================================================
 
-function onScanSuccess(decodedText, decodedResult) {
+function onScanSuccess(
+    decodedText,
+    decodedResult
+) {
 
     if (processingScan) {
         return;
     }
+
 
     console.log(
         "QR detected:",
         decodedText
     );
 
-    processQRCode(decodedText);
+
+    processQRCode(
+        decodedText
+    );
 }
 
 
 // ============================================================
-// QR SCAN ERROR CALLBACK
+// QR SCAN ERROR
 // ============================================================
 
 function onScanError(errorMessage) {
 
-    // html5-qrcode continuously reports
-    // "QR code not found" while searching.
+    // html5-qrcode continuously calls this function
+    // while searching for a QR code.
     //
-    // Do not display these messages to the user.
+    // Therefore we intentionally do not display
+    // these messages to the user.
 }
 
 
 // ============================================================
-// START CAMERA + SCANNER
+// START SCANNER
 // ============================================================
 
 async function startScanner() {
@@ -749,20 +912,59 @@ async function startScanner() {
 
     try {
 
+        // ----------------------------------------------------
+        // CHECK BROWSER SUPPORT
+        // ----------------------------------------------------
+
+        if (
+            !navigator.mediaDevices ||
+            !navigator.mediaDevices.getUserMedia
+        ) {
+
+            throw new Error(
+                "Camera API is not available."
+            );
+        }
+
+
+        // ----------------------------------------------------
+        // CHECK HTTPS
+        // ----------------------------------------------------
+
+        if (
+            location.protocol !== "https:" &&
+            location.hostname !== "localhost" &&
+            location.hostname !== "127.0.0.1"
+        ) {
+
+            throw new Error(
+                "Camera requires HTTPS or localhost."
+            );
+        }
+
+
+        // ----------------------------------------------------
+        // CHECK HTML5-QRCODE LIBRARY
+        // ----------------------------------------------------
+
+        if (
+            typeof Html5Qrcode ===
+            "undefined"
+        ) {
+
+            throw new Error(
+                "html5-qrcode library was not loaded."
+            );
+        }
+
+
         scannerStatus.textContent =
             "Requesting camera permission...";
 
 
-        // ====================================================
-        // STEP 1
-        // Explicitly request camera permission
-        // ====================================================
-        //
-        // This is important because some browsers will not
-        // show the permission prompt simply because a QR
-        // scanner object was created.
-        //
-        // ====================================================
+        // ----------------------------------------------------
+        // EXPLICIT CAMERA PERMISSION REQUEST
+        // ----------------------------------------------------
 
         let temporaryStream = null;
 
@@ -770,10 +972,14 @@ async function startScanner() {
         try {
 
             temporaryStream =
-                await navigator.mediaDevices.getUserMedia({
-                    video: true,
-                    audio: false
-                });
+                await navigator.mediaDevices
+                    .getUserMedia({
+
+                        video: true,
+
+                        audio: false
+
+                    });
 
 
         } finally {
@@ -782,25 +988,26 @@ async function startScanner() {
 
                 temporaryStream
                     .getTracks()
-                    .forEach(track => track.stop());
-
+                    .forEach(
+                        track => track.stop()
+                    );
             }
         }
 
 
-        // ====================================================
-        // STEP 2
-        // Create html5-qrcode scanner
-        // ====================================================
+        // ----------------------------------------------------
+        // CREATE QR SCANNER
+        // ----------------------------------------------------
 
         scanner =
-            new Html5Qrcode("reader");
+            new Html5Qrcode(
+                "reader"
+            );
 
 
-        // ====================================================
-        // STEP 3
-        // Find available cameras
-        // ====================================================
+        // ----------------------------------------------------
+        // GET AVAILABLE CAMERAS
+        // ----------------------------------------------------
 
         scannerStatus.textContent =
             "Finding camera...";
@@ -810,32 +1017,45 @@ async function startScanner() {
             await Html5Qrcode.getCameras();
 
 
-        if (!cameras || cameras.length === 0) {
+        if (
+            !cameras ||
+            cameras.length === 0
+        ) {
 
             throw new Error(
-                "No camera was found."
+                "No camera found."
             );
         }
 
 
-        // ====================================================
-        // STEP 4
-        // Prefer rear camera
-        // ====================================================
+        console.log(
+            "Available cameras:",
+            cameras
+        );
+
+
+        // ----------------------------------------------------
+        // SELECT REAR CAMERA
+        // ----------------------------------------------------
 
         let selectedCamera =
             cameras[0];
 
 
         const rearCamera =
-            cameras.find(camera =>
-                /back|rear|environment/i
-                    .test(camera.label || "")
+            cameras.find(
+                camera =>
+                    /back|rear|environment/i
+                        .test(
+                            camera.label || ""
+                        )
             );
 
 
         if (rearCamera) {
-            selectedCamera = rearCamera;
+
+            selectedCamera =
+                rearCamera;
         }
 
 
@@ -845,10 +1065,9 @@ async function startScanner() {
         );
 
 
-        // ====================================================
-        // STEP 5
-        // Scanner configuration
-        // ====================================================
+        // ----------------------------------------------------
+        // SCANNER CONFIGURATION
+        // ----------------------------------------------------
 
         const scannerConfig = {
 
@@ -865,15 +1084,22 @@ async function startScanner() {
                         viewfinderHeight
                     );
 
+
+                const boxSize =
+                    Math.floor(
+                        minDimension * 0.70
+                    );
+
+
                 return {
-                    width: Math.floor(
-                        minDimension * 0.70
-                    ),
-                    height: Math.floor(
-                        minDimension * 0.70
-                    )
+
+                    width: boxSize,
+
+                    height: boxSize
+
                 };
             },
+
 
             aspectRatio: 1.0,
 
@@ -882,20 +1108,24 @@ async function startScanner() {
         };
 
 
-        // ====================================================
-        // STEP 6
-        // Start scanner
-        // ====================================================
+        // ----------------------------------------------------
+        // START SCANNER
+        // ----------------------------------------------------
 
         scannerStatus.textContent =
             "Starting camera...";
 
 
         await scanner.start(
+
             selectedCamera.id,
+
             scannerConfig,
+
             onScanSuccess,
+
             onScanError
+
         );
 
 
@@ -928,7 +1158,8 @@ async function startScanner() {
 
         if (
             error &&
-            error.name === "NotAllowedError"
+            error.name ===
+            "NotAllowedError"
         ) {
 
             message =
@@ -936,7 +1167,8 @@ async function startScanner() {
 
         } else if (
             error &&
-            error.name === "NotFoundError"
+            error.name ===
+            "NotFoundError"
         ) {
 
             message =
@@ -944,19 +1176,39 @@ async function startScanner() {
 
         } else if (
             error &&
-            error.name === "NotReadableError"
+            error.name ===
+            "NotReadableError"
         ) {
 
             message =
                 "The camera is already being used by another application.";
 
         } else if (
-            !navigator.mediaDevices ||
-            !navigator.mediaDevices.getUserMedia
+            error &&
+            error.message ===
+            "Camera requires HTTPS or localhost."
         ) {
 
             message =
-                "Camera access is unavailable. Please open this page using HTTPS or localhost.";
+                "Camera access requires HTTPS or localhost.";
+
+        } else if (
+            error &&
+            error.message ===
+            "html5-qrcode library was not loaded."
+        ) {
+
+            message =
+                "QR scanner library failed to load. Please refresh the page.";
+
+        } else if (
+            error &&
+            error.message ===
+            "No camera found."
+        ) {
+
+            message =
+                "No camera was found on this device.";
 
         }
 
@@ -977,26 +1229,25 @@ if (scanAgainButton) {
         "click",
         async () => {
 
-            // Hide previous result
             resultSection.hidden = true;
 
             resultCard.innerHTML = "";
 
-            scannerStatus.textContent =
-                "Preparing camera...";
-
-
-            // Reset state
             processingScan = false;
 
 
-            // If an old scanner exists, clean it up
+            // ------------------------------------------------
+            // CLEAN UP PREVIOUS SCANNER
+            // ------------------------------------------------
+
             if (scanner) {
 
                 try {
 
                     if (scanning) {
+
                         await scanner.stop();
+
                     }
 
                 } catch (error) {
@@ -1005,16 +1256,25 @@ if (scanAgainButton) {
                         "Scanner cleanup warning:",
                         error
                     );
-
                 }
 
+
                 scanner = null;
+
                 scanning = false;
             }
 
 
-            // Start again
+            scannerStatus.textContent =
+                "Preparing camera...";
+
+
+            // ------------------------------------------------
+            // START CAMERA AGAIN
+            // ------------------------------------------------
+
             await startScanner();
+
         }
     );
 }
@@ -1028,14 +1288,22 @@ window.addEventListener(
     "beforeunload",
     async () => {
 
-        if (scanner && scanning) {
+        if (
+            scanner &&
+            scanning
+        ) {
 
             try {
-                await scanner.stop();
-            } catch (error) {
-                console.warn(error);
-            }
 
+                await scanner.stop();
+
+            } catch (error) {
+
+                console.warn(
+                    "Scanner cleanup error:",
+                    error
+                );
+            }
         }
     }
 );
@@ -1048,8 +1316,9 @@ window.addEventListener(
 if (!reader) {
 
     console.error(
-        'QR reader element "#reader" was not found.'
+        'Element with id="reader" was not found.'
     );
+
 
 } else {
 
