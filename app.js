@@ -481,7 +481,7 @@ function displayParticipant(participant) {
 
                 <div class="detail">
                     <div class="detail-label">Food Preference</div>
-                    <div class="detail-value">${escapeHTML(participant.foodPreference || "—")}</div>
+                    <div class="detail-value">${escapeHTML(participant.food_preference || "—")}</div>
                 </div>
 
             </div>
