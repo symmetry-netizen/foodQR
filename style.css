@@ -1,0 +1,328 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #111113;
+    color: white;
+    min-height: 100vh;
+}
+
+.app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+    padding: 25px 40px;
+    background: #19191d;
+    border-bottom: 1px solid #333;
+}
+
+.brand {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+
+.brand span {
+    color: #8f1735;
+}
+
+.subtitle {
+    margin-top: 5px;
+    color: #999;
+    font-size: 14px;
+}
+
+
+/* =========================
+   MAIN
+========================= */
+
+.main {
+    width: 100%;
+    max-width: 900px;
+    margin: auto;
+    padding: 40px 20px;
+}
+
+
+/* =========================
+   SCANNER
+========================= */
+
+.scanner-section {
+    text-align: center;
+}
+
+.section-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+.scanner-container {
+    width: 100%;
+    max-width: 500px;
+    margin: auto;
+    padding: 15px;
+    background: #1c1c20;
+    border-radius: 18px;
+    border: 1px solid #333;
+}
+
+#reader {
+    width: 100%;
+}
+
+#reader video {
+    border-radius: 12px;
+}
+
+.scanner-status {
+    margin-top: 18px;
+    color: #aaa;
+    font-size: 14px;
+}
+
+
+/* =========================
+   RESULT
+========================= */
+
+.result-section {
+    margin-top: 30px;
+}
+
+.result-card {
+    background: #1c1c20;
+    border-radius: 18px;
+    padding: 30px;
+    border: 1px solid #333;
+}
+
+.result-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.valid-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #1e7b4d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+}
+
+.invalid-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #8f1735;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+}
+
+.result-title {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.result-subtitle {
+    color: #999;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+
+/* =========================
+   PARTICIPANT DETAILS
+========================= */
+
+.participant-name {
+    font-size: 30px;
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.registration-id {
+    color: #a72b4d;
+    font-family: monospace;
+    font-size: 15px;
+    margin-bottom: 25px;
+}
+
+.details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.detail {
+    background: #151518;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.detail-label {
+    color: #777;
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.detail-value {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+
+/* =========================
+   EVENTS
+========================= */
+
+.events {
+    margin-top: 25px;
+}
+
+.events-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.event-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.event {
+    padding: 8px 13px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.event-active {
+    background: #1e7b4d;
+}
+
+.event-inactive {
+    background: #333;
+    color: #777;
+}
+
+
+/* =========================
+   SCAN AGAIN
+========================= */
+
+.scan-again {
+    display: block;
+    margin: 25px auto 0;
+    padding: 14px 25px;
+    border: none;
+    border-radius: 10px;
+    background: #8f1735;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.scan-again:hover {
+    transform: translateY(-2px);
+    background: #a82043;
+}
+
+
+/* =========================
+   ERROR
+========================= */
+
+.error-card {
+    background: #1c1c20;
+    border: 1px solid #8f1735;
+    border-radius: 18px;
+    padding: 30px;
+    text-align: center;
+}
+
+.error-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 15px 0 8px;
+}
+
+.error-message {
+    color: #999;
+}
+
+
+/* =========================
+   UTILITIES
+========================= */
+
+.hidden {
+    display: none !important;
+}
+
+
+/* =========================
+   FOOTER
+========================= */
+
+footer {
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    padding: 25px;
+    margin-top: auto;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+
+    .header {
+        padding: 20px;
+    }
+
+    .main {
+        padding: 25px 15px;
+    }
+
+    .details {
+        grid-template-columns: 1fr;
+    }
+
+    .participant-name {
+        font-size: 25px;
+    }
+
+    .result-card {
+        padding: 22px;
+    }
+
+}
