@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Symmetry 2026 | QR Scanner</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- QR Scanner -->
+    <script src="https://unpkg.com/html5-qrcode" 
+            type="text/javascript"></script>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- HEADER -->
+
+        <header class="header">
+
+            <div>
+                <div class="brand">
+                    SYMMETRY <span>2026</span>
+                </div>
+
+                <div class="subtitle">
+                    Food acceptance
+                </div>
+            </div>
+
+        </header>
+
+
+        <!-- MAIN -->
+
+        <main class="main">
+
+            <section class="scanner-section">
+
+                <div class="section-title">
+                    Scan Participant QR
+                </div>
+
+                <div class="scanner-container">
+
+                    <div id="reader"></div>
+
+                </div>
+
+                <div id="scanner-status"
+                     class="scanner-status">
+                    Camera ready — scan a participant QR code
+                </div>
+
+            </section>
+
+
+            <!-- RESULT -->
+
+            <section id="result-section"
+                     class="result-section hidden">
+
+                <div id="result-card"></div>
+
+            </section>
+
+
+            <!-- SCAN AGAIN -->
+
+            <button id="scan-again"
+                    class="scan-again hidden">
+
+                Scan Another Participant
+
+            </button>
+
+        </main>
+
+
+        <footer>
+
+            Symmetry 2026 · Participant Verification
+
+        </footer>
+
+    </div>
+
+
+    <!-- Firebase + Application -->
+
+    <script type="module" src="app.js"></script>
+
+</body>
+
+</html>
