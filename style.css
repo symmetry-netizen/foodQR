@@ -326,3 +326,27 @@ footer {
     }
 
 }
+
+
+
+.food-preference-display {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+}
+
+.food-preference-display.pref-veg {
+    background-color: #dcfce7;
+    color: #15803d;
+    border: 2px solid #86efac;
+}
+
+.food-preference-display.pref-nonveg {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 2px solid #fca5a5;
+}
