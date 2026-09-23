@@ -2,7 +2,9 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
@@ -10,34 +12,51 @@
 
     <link rel="stylesheet" href="style.css">
 
-    <!-- QR Scanner -->
-    <script src="https://unpkg.com/html5-qrcode" 
-            type="text/javascript"></script>
+    <!-- =====================================================
+         QR SCANNER LIBRARY
+         Loaded globally before app.js
+         ===================================================== -->
+
+    <script
+        src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"
+        type="text/javascript">
+    </script>
+
 </head>
 
 <body>
 
     <div class="app">
 
-        <!-- HEADER -->
+        <!-- =================================================
+             HEADER
+             ================================================= -->
 
         <header class="header">
 
             <div>
+
                 <div class="brand">
                     SYMMETRY <span>2026</span>
                 </div>
 
                 <div class="subtitle">
-                    Participant Verification System
+                    Food acceptance
                 </div>
+
             </div>
 
         </header>
 
-        <!-- MAIN -->
+        <!-- =================================================
+             MAIN
+             ================================================= -->
 
         <main class="main">
+
+            <!-- =============================================
+                 QR SCANNER
+                 ============================================= -->
 
             <section class="scanner-section">
 
@@ -51,32 +70,46 @@
 
                 </div>
 
-                <div id="scanner-status"
-                     class="scanner-status">
+                <div
+                    id="scanner-status"
+                    class="scanner-status">
+
                     Camera ready — scan a participant QR code
+
                 </div>
 
             </section>
 
-            <!-- RESULT -->
+            <!-- =============================================
+                 RESULT
+                 ============================================= -->
 
-            <section id="result-section"
-                     class="result-section hidden">
+            <section
+                id="result-section"
+                class="result-section hidden">
 
                 <div id="result-card"></div>
 
             </section>
 
-            <!-- SCAN AGAIN -->
+            <!-- =============================================
+                 SCAN AGAIN
+                 ============================================= -->
 
-            <button id="scan-again"
-                    class="scan-again hidden">
+            <button
+                id="scan-again"
+                class="scan-again hidden"
+                type="button">
 
                 Scan Another Participant
 
             </button>
 
         </main>
+
+        <!-- =================================================
+             FOOTER
+             ================================================= -->
 
         <footer>
 
@@ -86,9 +119,14 @@
 
     </div>
 
-    <!-- Firebase + Application -->
+    <!-- =====================================================
+         FIREBASE + APPLICATION
+         ===================================================== -->
 
-    <script type="module" src="app.js"></script>
+    <script
+        type="module"
+        src="app.js">
+    </script>
 
 </body>
 
