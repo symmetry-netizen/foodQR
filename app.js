@@ -383,7 +383,7 @@ async function stopScanner() {
 
 
 // ============================================================
-// DISPLAY SUCCESS
+// DISPLAY SUCCESS — simplified to show only Veg/Non-Veg
 // ============================================================
 
 function displayParticipant(participant) {
@@ -391,23 +391,13 @@ function displayParticipant(participant) {
     const data =
         participant.data;
 
-
-    const name =
-        data.name ||
-        data.full_name ||
-        data.fullName ||
-        "Participant";
-
-
-    const registrationId =
-        data.registration_id ||
-        "N/A";
-
-
     const foodPreference =
         formatFoodPreference(
             data.food_preference
         );
+
+    const isVeg =
+        foodPreference === "VEG";
 
 
     resultSection.hidden = false;
@@ -426,62 +416,10 @@ function displayParticipant(participant) {
             </h2>
 
 
-            <div class="participant-details">
-
-
-                <div class="detail-row">
-
-                    <span class="detail-label">
-                        Name
-                    </span>
-
-                    <span class="detail-value">
-                        ${escapeHTML(name)}
-                    </span>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <span class="detail-label">
-                        Registration ID
-                    </span>
-
-                    <span class="detail-value">
-                        ${escapeHTML(registrationId)}
-                    </span>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <span class="detail-label">
-                        Food Preference
-                    </span>
-
-                    <span class="detail-value food-preference">
-                        ${escapeHTML(foodPreference)}
-                    </span>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <span class="detail-label">
-                        Status
-                    </span>
-
-                    <span class="detail-value">
-                        Food Received
-                    </span>
-
-                </div>
-
-
+            <div class="food-preference-display ${isVeg ? "pref-veg" : "pref-nonveg"}">
+                ${escapeHTML(foodPreference)}
             </div>
+
 
         </div>
     `;
@@ -495,7 +433,7 @@ function displayParticipant(participant) {
 
 
 // ============================================================
-// DISPLAY ALREADY RECEIVED
+// DISPLAY ALREADY RECEIVED — simplified to show only Veg/Non-Veg
 // ============================================================
 
 function displayAlreadyReceived(participant) {
@@ -503,23 +441,13 @@ function displayAlreadyReceived(participant) {
     const data =
         participant.data;
 
-
-    const name =
-        data.name ||
-        data.full_name ||
-        data.fullName ||
-        "Participant";
-
-
-    const registrationId =
-        data.registration_id ||
-        "N/A";
-
-
     const foodPreference =
         formatFoodPreference(
             data.food_preference
         );
+
+    const isVeg =
+        foodPreference === "VEG";
 
 
     resultSection.hidden = false;
@@ -542,62 +470,10 @@ function displayAlreadyReceived(participant) {
             </p>
 
 
-            <div class="participant-details">
-
-
-                <div class="detail-row">
-
-                    <span class="detail-label">
-                        Name
-                    </span>
-
-                    <span class="detail-value">
-                        ${escapeHTML(name)}
-                    </span>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <span class="detail-label">
-                        Registration ID
-                    </span>
-
-                    <span class="detail-value">
-                        ${escapeHTML(registrationId)}
-                    </span>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <span class="detail-label">
-                        Food Preference
-                    </span>
-
-                    <span class="detail-value food-preference">
-                        ${escapeHTML(foodPreference)}
-                    </span>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <span class="detail-label">
-                        Status
-                    </span>
-
-                    <span class="detail-value">
-                        Already Received
-                    </span>
-
-                </div>
-
-
+            <div class="food-preference-display ${isVeg ? "pref-veg" : "pref-nonveg"}">
+                ${escapeHTML(foodPreference)}
             </div>
+
 
         </div>
     `;
@@ -1186,142 +1062,4 @@ async function startScanner() {
         } else if (
             error &&
             error.message ===
-            "Camera requires HTTPS or localhost."
-        ) {
-
-            message =
-                "Camera access requires HTTPS or localhost.";
-
-        } else if (
-            error &&
-            error.message ===
-            "html5-qrcode library was not loaded."
-        ) {
-
-            message =
-                "QR scanner library failed to load. Please refresh the page.";
-
-        } else if (
-            error &&
-            error.message ===
-            "No camera found."
-        ) {
-
-            message =
-                "No camera was found on this device.";
-
-        }
-
-
-        scannerStatus.textContent =
-            message;
-    }
-}
-
-
-// ============================================================
-// SCAN AGAIN BUTTON
-// ============================================================
-
-if (scanAgainButton) {
-
-    scanAgainButton.addEventListener(
-        "click",
-        async () => {
-
-            resultSection.hidden = true;
-
-            resultCard.innerHTML = "";
-
-            processingScan = false;
-
-
-            // ------------------------------------------------
-            // CLEAN UP PREVIOUS SCANNER
-            // ------------------------------------------------
-
-            if (scanner) {
-
-                try {
-
-                    if (scanning) {
-
-                        await scanner.stop();
-
-                    }
-
-                } catch (error) {
-
-                    console.warn(
-                        "Scanner cleanup warning:",
-                        error
-                    );
-                }
-
-
-                scanner = null;
-
-                scanning = false;
-            }
-
-
-            scannerStatus.textContent =
-                "Preparing camera...";
-
-
-            // ------------------------------------------------
-            // START CAMERA AGAIN
-            // ------------------------------------------------
-
-            await startScanner();
-
-        }
-    );
-}
-
-
-// ============================================================
-// CLEAN UP CAMERA WHEN LEAVING PAGE
-// ============================================================
-
-window.addEventListener(
-    "beforeunload",
-    async () => {
-
-        if (
-            scanner &&
-            scanning
-        ) {
-
-            try {
-
-                await scanner.stop();
-
-            } catch (error) {
-
-                console.warn(
-                    "Scanner cleanup error:",
-                    error
-                );
-            }
-        }
-    }
-);
-
-
-// ============================================================
-// INITIALIZE
-// ============================================================
-
-if (!reader) {
-
-    console.error(
-        'Element with id="reader" was not found.'
-    );
-
-
-} else {
-
-    startScanner();
-
-}
+            "Camera requires HTTPS or
